@@ -1,0 +1,137 @@
+{% extends 'layouts/dashboard_layout.html' %}
+{% from 'components/_modal_delete.html' import render_modal %}
+
+{% block title %}Gestión de Estudiantes{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Gestión de Estudiantes</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearEstudianteModal">
+        <i class="bi bi-plus-circle-fill me-2"></i>Crear Nuevo Estudiante
+    </button>
+</div>
+<p>Listado de todos los estudiantes matriculados en el sistema.</p>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre Completo</th>
+                        <th>DNI</th>
+                        <th>Grado y Sección</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for estudiante in estudiantes %}
+                    <tr>
+                        <td>{{ estudiante.username }}</td>
+                        <td>{{ estudiante.apellidos }}, {{ estudiante.nombres }}</td>
+                        <td>{{ estudiante.dni }}</td>
+                        <td>{{ estudiante.grado_nombre }} - {{ estudiante.seccion_nombre }}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-primary edit-btn" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editarEstudianteModal"
+                                    data-user-id="{{ estudiante.id }}"
+                                    title="Editar">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#eliminarUsuarioModal"
+                                    data-id="{{ estudiante.id }}"
+                                    data-name="{{ estudiante.nombre_completo }}"
+                                    title="Eliminar">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center">No hay estudiantes registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if total_pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin.gestionar_estudiantes', page=page-1) }}">Anterior</a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {% if p == page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin.gestionar_estudiantes', page=p) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin.gestionar_estudiantes', page=page+1) }}">Siguiente</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Incluir los modales desde el archivo parcial -->
+{% include 'admin/_modal_create_edit_estudiante.html' %}
+
+<!-- Renderizar el modal de eliminación genérico -->
+{{ render_modal('eliminarUsuarioModal', 'Confirmar Eliminación', '¿Está seguro de que desea eliminar al estudiante') }}
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Lógica para el modal de EDICIÓN
+    const editModal = document.getElementById('editarEstudianteModal');
+    if(editModal) {
+        editModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const userId = button.getAttribute('data-user-id');
+            const form = document.getElementById('editForm');
+            form.action = `/admin/usuario/${userId}/editar`;
+
+            fetch(`/admin/api/usuario/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
+                    form.querySelector('#edit_username').value = data.username;
+                    form.querySelector('#edit_nombres').value = data.nombres;
+                    form.querySelector('#edit_apellidos').value = data.apellidos;
+                    form.querySelector('#edit_dni').value = data.dni;
+                    form.querySelector('#edit_correo').value = data.correo || '';
+                    form.querySelector('#edit_fecha_nacimiento').value = data.fecha_nacimiento;
+                    form.querySelector('#edit_grado_id').value = data.grado_id;
+                    form.querySelector('#edit_seccion_id').value = data.seccion_id;
+                    form.querySelector('#edit_activo').checked = data.activo;
+                });
+        });
+    }
+
+    // Lógica para el modal de ELIMINACIÓN
+    const deleteModal = document.getElementById('eliminarUsuarioModal');
+    if(deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const userId = button.getAttribute('data-id');
+            const userName = button.getAttribute('data-name');
+            
+            deleteModal.querySelector('.delete-name').textContent = `"${userName}"`;
+            const form = deleteModal.querySelector('.delete-form');
+            form.action = `{{ url_for('admin.eliminar_usuario', user_id=0) }}`.replace('0', userId);
+        });
+    }
+});
+</script>
+{% endblock %}

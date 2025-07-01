@@ -1,0 +1,65 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Gestionar Preinscripciones{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Gestión de Preinscripciones de Nuevos Aspirantes</h1>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Aspirante</th>
+                        <th>DNI</th>
+                        <th>Grado Solicitado</th>
+                        <th>Apoderado</th>
+                        <th>Contacto</th>
+                        <th>Fecha</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in solicitudes %}
+                    <tr>
+                        <td>{{ s.id }}</td>
+                        <td>{{ s.nombres_aspirante }} {{ s.apellidos_aspirante }}</td>
+                        <td>{{ s.dni_aspirante }}</td>
+                        <td>{{ s.grado_nombre }}</td>
+                        <td>{{ s.nombre_apoderado }}</td>
+                        <td>{{ s.correo_apoderado }}<br>{{ s.telefono_apoderado }}</td>
+                        <td>{{ s.fecha_preinscripcion.strftime('%d/%m/%Y') }}</td>
+                        <td class="text-center">
+                            <span class="badge fs-6 bg-{% if s.estado == 'pendiente' %}warning text-dark{% elif s.estado == 'aprobado' %}success{% else %}danger{% endif %}">{{ s.estado|capitalize }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if s.estado == 'pendiente' %}
+                            <form action="{{ url_for('director.procesar_preinscripcion', preinscripcion_id=s.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="estado" value="aprobado">
+                                <button type="submit" class="btn btn-success btn-sm" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                            </form>
+                            <form action="{{ url_for('director.procesar_preinscripcion', preinscripcion_id=s.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="estado" value="rechazado">
+                                <button type="submit" class="btn btn-danger btn-sm" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                            </form>
+                            {% else %}
+                                <span class="text-muted">Procesado</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="9" class="text-center">No hay solicitudes de preinscripción pendientes.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

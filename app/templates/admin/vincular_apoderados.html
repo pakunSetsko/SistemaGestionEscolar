@@ -1,0 +1,80 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Vincular Apoderados y Estudiantes{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Vínculos Familiares</h1>
+</div>
+<p>Desde aquí puede asignar apoderados a los estudiantes y gestionar los vínculos existentes.</p>
+
+<div class="row">
+    <!-- Columna para crear un nuevo vínculo -->
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header"><i class="bi bi-link-45deg me-2"></i>Vincular Apoderado a Estudiante</div>
+            <div class="card-body">
+                <!-- CORRECCIÓN: La acción del formulario ahora apunta a la ruta correcta -->
+                <form action="{{ url_for('admin.vincular_apoderado') }}" method="POST" novalidate>
+                    {{ form.csrf_token }}
+                    <div class="mb-3">
+                        {{ form.padre_id.label(class="form-label") }}
+                        {{ form.padre_id(class="form-select") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.estudiante_id.label(class="form-label") }}
+                        {{ form.estudiante_id(class="form-select") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.parentesco.label(class="form-label") }}
+                        {{ form.parentesco(class="form-control", placeholder="Ej: Padre, Madre, Tutor") }}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna para mostrar los vínculos existentes -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header"><i class="bi bi-diagram-3-fill me-2"></i>Vínculos Actuales</div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Apoderado</th>
+                                <th>Estudiante</th>
+                                <th>Parentesco</th>
+                                <th class="text-end">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vinculo in vinculos %}
+                            <tr>
+                                <td>{{ vinculo.nombre_padre }}</td>
+                                <td>{{ vinculo.nombre_estudiante }}</td>
+                                <td><span class="badge bg-secondary">{{ vinculo.parentesco }}</span></td>
+                                <td class="text-end">
+                                    <form action="{{ url_for('admin.eliminar_vinculo', padre_id=vinculo.padre_id, estudiante_id=vinculo.estudiante_id) }}" method="POST" onsubmit="return confirm('¿Está seguro de que desea eliminar este vínculo?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar Vínculo">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center">No hay vínculos familiares registrados.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

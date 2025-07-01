@@ -1,0 +1,61 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Gestión de Preguntas de Evaluación Docente{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Preguntas de Evaluación Docente</h1>
+    <a href="{{ url_for('director.resultados_evaluacion') }}" class="btn btn-success"><i class="bi bi-bar-chart-fill me-2"></i>Ver Resultados</a>
+</div>
+<p>Administre el banco de preguntas que los estudiantes usarán para evaluar a los docentes.</p>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header"><i class="bi bi-plus-circle-fill me-2"></i>Añadir Nueva Pregunta</div>
+            <div class="card-body">
+                <form action="{{ url_for('director.gestionar_preguntas_evaluacion') }}" method="POST" novalidate>
+                    {{ form.csrf_token }}
+                    <div class="mb-3">{{ form.texto_pregunta.label(class="form-label") }}{{ form.texto_pregunta(class="form-control", rows="3") }}</div>
+                    <div class="mb-3">{{ form.tipo_pregunta.label(class="form-label") }}{{ form.tipo_pregunta(class="form-select") }}</div>
+                    <div class="d-grid">{{ form.submit(class="btn btn-primary") }}</div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">Banco de Preguntas Actual</div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Texto de la Pregunta</th>
+                            <th>Tipo</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pregunta in preguntas %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ pregunta.texto_pregunta }}</td>
+                            <td><span class="badge bg-secondary">{{ pregunta.tipo_pregunta|replace('_', ' ')|title }}</span></td>
+                            <td class="text-end">
+                                <form action="{{ url_for('director.eliminar_pregunta_evaluacion', pregunta_id=pregunta.id) }}" method="POST" onsubmit="return confirm('¿Seguro que desea eliminar esta pregunta?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center">No hay preguntas creadas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

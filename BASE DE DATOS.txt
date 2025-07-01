@@ -1,0 +1,284 @@
+--================================================================================
+-- CREACIÓN Y USO DE LA BASE DE DATOS
+--================================================================================
+-- Crea la base de datos si no existe
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'sistema_gestion_escolar_v3')
+BEGIN
+    CREATE DATABASE [sistema_gestion_escolar_v3];
+END
+GO
+
+-- Cambia el contexto a la nueva base de datos
+USE [sistema_gestion_escolar_v3];
+GO
+
+--================================================================================
+-- CREACIÓN DE TABLAS
+--================================================================================
+
+-- Tabla para almacenar información de usuarios y sus roles
+CREATE TABLE [dbo].[Usuarios](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[username] NVARCHAR(50) NOT NULL UNIQUE,
+	[password_hash] NVARCHAR(255) NOT NULL,
+	[rol] NVARCHAR(50) NOT NULL,
+	[activo] BIT NOT NULL DEFAULT (1),
+    CONSTRAINT [CK_Usuarios_Rol] CHECK (([rol] IN ('admin', 'docente', 'estudiante', 'director', 'padre_familia', 'psicopedagogo')))
+);
+GO
+
+-- Tabla base para almacenar datos personales
+CREATE TABLE [dbo].[Personas](
+	[id] INT NOT NULL PRIMARY KEY, -- Se relaciona 1 a 1 con Usuarios
+	[nombres] NVARCHAR(100) NOT NULL,
+	[apellidos] NVARCHAR(100) NOT NULL,
+	[dni] NVARCHAR(8) NOT NULL UNIQUE,
+	[correo] NVARCHAR(100) UNIQUE,
+	[fecha_nacimiento] DATE NULL
+);
+GO
+
+-- Tablas de Roles Específicos (heredan de Personas)
+CREATE TABLE [dbo].[Directores](
+	[id] INT NOT NULL PRIMARY KEY -- FK a Personas
+);
+GO
+
+CREATE TABLE [dbo].[Docentes](
+	[id] INT NOT NULL PRIMARY KEY, -- FK a Personas
+	[especialidad] NVARCHAR(100) NULL
+);
+GO
+
+CREATE TABLE [dbo].[Padres](
+	[id] INT NOT NULL PRIMARY KEY -- FK a Personas
+);
+GO
+
+-- Tablas de estructura académica
+CREATE TABLE [dbo].[Grados](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[nombre] NVARCHAR(100) NOT NULL UNIQUE,
+	[nivel] NVARCHAR(50) NOT NULL
+);
+GO
+
+CREATE TABLE [dbo].[Secciones](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[nombre] NVARCHAR(50) NOT NULL,
+	[grado_id] INT NULL,
+    CONSTRAINT [UQ_Seccion_Por_Grado] UNIQUE ([nombre], [grado_id])
+);
+GO
+
+CREATE TABLE [dbo].[PeriodosAcademicos](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[anio] INT NOT NULL UNIQUE,
+	[nombre] NVARCHAR(100) NOT NULL,
+	[fecha_inicio] DATE NOT NULL,
+	[fecha_fin] DATE NOT NULL,
+	[activo] BIT NOT NULL DEFAULT (0)
+);
+GO
+
+CREATE TABLE [dbo].[Cursos](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[nombre] NVARCHAR(100) NOT NULL,
+	[area] NVARCHAR(100) NOT NULL,
+	[grado_id] INT NOT NULL,
+    CONSTRAINT [UQ_Curso_Grado] UNIQUE ([nombre], [grado_id])
+);
+GO
+
+-- Tabla de Estudiantes
+CREATE TABLE [dbo].[Estudiantes](
+	[id] INT NOT NULL PRIMARY KEY, -- FK a Personas
+	[grado_id] INT NOT NULL,
+	[seccion_id] INT NOT NULL
+);
+GO
+
+-- Tabla de relación entre Estudiantes y Apoderados (Padres)
+CREATE TABLE [dbo].[Estudiante_Apoderado](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[estudiante_id] INT NOT NULL,
+	[padre_id] INT NOT NULL,
+	[parentesco] NVARCHAR(50) NULL,
+    CONSTRAINT [UQ_Parentesco] UNIQUE ([estudiante_id], [padre_id])
+);
+GO
+
+-- Tablas Transaccionales (calificaciones, asistencias, etc.)
+CREATE TABLE [dbo].[Asignaciones](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[docente_id] INT NOT NULL,
+	[curso_id] INT NOT NULL,
+	[periodo_id] INT NOT NULL,
+    CONSTRAINT [UQ_Asignacion] UNIQUE ([docente_id], [curso_id], [periodo_id])
+);
+GO
+
+CREATE TABLE [dbo].[Asistencias](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[estudiante_id] INT NOT NULL,
+	[curso_id] INT NOT NULL,
+	[periodo_id] INT NOT NULL,
+	[fecha] DATE NOT NULL,
+	[estado] NVARCHAR(20) NOT NULL,
+    CONSTRAINT [UQ_Asistencia] UNIQUE ([estudiante_id], [curso_id], [fecha]),
+    CHECK (([estado] IN ('Presente', 'Tardanza', 'Falta')))
+);
+GO
+
+CREATE TABLE [dbo].[Calificaciones](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[estudiante_id] INT NOT NULL,
+	[curso_id] INT NOT NULL,
+	[periodo_id] INT NOT NULL,
+	[bimestre] INT NOT NULL,
+	[valor] DECIMAL(4, 2) NOT NULL,
+	[comentario] NVARCHAR(255) NULL,
+    CONSTRAINT [UQ_Calificacion] UNIQUE ([estudiante_id], [curso_id], [periodo_id], [bimestre]),
+    CHECK (([bimestre] IN (1, 2, 3, 4)))
+);
+GO
+
+CREATE TABLE [dbo].[Comunicados](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[titulo] NVARCHAR(200) NOT NULL,
+	[contenido] NVARCHAR(MAX) NOT NULL,
+	[fecha_publicacion] DATETIME NOT NULL DEFAULT (GETDATE()),
+	[autor_id] INT NOT NULL,
+	[destinatario] NVARCHAR(50) NOT NULL,
+    CHECK (([destinatario] IN ('todos', 'docentes', 'estudiantes')))
+);
+GO
+
+-- Tablas de Finanzas y Pagos
+CREATE TABLE [dbo].[ConceptosPago](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[nombre] NVARCHAR(150) NOT NULL,
+	[monto_sugerido] DECIMAL(10, 2) NOT NULL,
+	[periodo_id] INT NOT NULL
+);
+GO
+
+CREATE TABLE [dbo].[DeudasEstudiante](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[estudiante_id] INT NOT NULL,
+	[concepto_id] INT NOT NULL,
+	[monto] DECIMAL(10, 2) NOT NULL,
+	[fecha_emision] DATE NOT NULL DEFAULT (GETDATE()),
+	[fecha_vencimiento] DATE NOT NULL,
+	[estado] NVARCHAR(50) NOT NULL DEFAULT ('pendiente'),
+    CHECK (([estado] IN ('pendiente', 'pagado', 'vencido', 'anulado')))
+);
+GO
+
+CREATE TABLE [dbo].[PagosRegistrados](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[deuda_id] INT NOT NULL,
+	[monto_pagado] DECIMAL(10, 2) NOT NULL,
+	[fecha_pago] DATETIME NOT NULL DEFAULT (GETDATE()),
+	[metodo_pago] NVARCHAR(100) NULL,
+	[observaciones] NVARCHAR(MAX) NULL,
+	[registrado_por_id] INT NOT NULL
+);
+GO
+
+-- Tablas de Admisión y Evaluación
+CREATE TABLE [dbo].[Preinscripciones](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[nombres_aspirante] NVARCHAR(100) NOT NULL,
+	[apellidos_aspirante] NVARCHAR(100) NOT NULL,
+	[dni_aspirante] NVARCHAR(8) NOT NULL UNIQUE,
+	[fecha_nacimiento_aspirante] DATE NOT NULL,
+	[grado_id_solicitado] INT NOT NULL,
+	[nombre_apoderado] NVARCHAR(200) NOT NULL,
+	[dni_apoderado] NVARCHAR(8) NOT NULL,
+	[correo_apoderado] NVARCHAR(100) NOT NULL,
+	[telefono_apoderado] NVARCHAR(20) NOT NULL,
+	[estado] NVARCHAR(50) NOT NULL DEFAULT ('pendiente'),
+	[fecha_preinscripcion] DATETIME NOT NULL DEFAULT (GETDATE()),
+    CHECK (([estado] IN ('pendiente', 'aprobado', 'rechazado')))
+);
+GO
+
+CREATE TABLE [dbo].[PreguntasEvaluacionDocente](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[texto_pregunta] NVARCHAR(500) NOT NULL,
+	[tipo_pregunta] NVARCHAR(50) NOT NULL DEFAULT ('escala_1_5'),
+	[activa] BIT NOT NULL DEFAULT (1),
+    CHECK (([tipo_pregunta] IN ('escala_1_5', 'texto_abierto')))
+);
+GO
+
+CREATE TABLE [dbo].[RespuestasEvaluacionDocente](
+	[id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+	[estudiante_id] INT NOT NULL,
+	[docente_id] INT NOT NULL,
+	[curso_id] INT NOT NULL,
+	[pregunta_id] INT NOT NULL,
+	[respuesta_escala] INT NULL,
+	[respuesta_texto] NVARCHAR(MAX) NULL,
+	[periodo_id] INT NOT NULL,
+	[fecha_respuesta] DATETIME NOT NULL DEFAULT (GETDATE()),
+    CONSTRAINT [UQ_RespuestaEvaluacion] UNIQUE ([estudiante_id], [docente_id], [curso_id], [pregunta_id], [periodo_id])
+);
+GO
+
+--================================================================================
+-- CREACIÓN DE LLAVES FORÁNEAS (FOREIGN KEYS)
+--================================================================================
+
+-- Relaciones de Personas y Roles
+ALTER TABLE [dbo].[Personas] ADD CONSTRAINT [FK_Personas_To_Usuarios] FOREIGN KEY ([id]) REFERENCES [dbo].[Usuarios] ([id]) ON DELETE CASCADE;
+ALTER TABLE [dbo].[Directores] ADD CONSTRAINT [FK_Directores_To_Personas] FOREIGN KEY ([id]) REFERENCES [dbo].[Personas] ([id]) ON DELETE CASCADE;
+ALTER TABLE [dbo].[Docentes] ADD CONSTRAINT [FK_Docentes_To_Personas] FOREIGN KEY ([id]) REFERENCES [dbo].[Personas] ([id]) ON DELETE CASCADE;
+ALTER TABLE [dbo].[Padres] ADD CONSTRAINT [FK_Padres_To_Personas] FOREIGN KEY ([id]) REFERENCES [dbo].[Personas] ([id]) ON DELETE CASCADE;
+ALTER TABLE [dbo].[Estudiantes] ADD CONSTRAINT [FK_Estudiantes_To_Personas] FOREIGN KEY ([id]) REFERENCES [dbo].[Personas] ([id]) ON DELETE CASCADE;
+GO
+
+-- Relaciones de Estructura Académica
+ALTER TABLE [dbo].[Secciones] ADD CONSTRAINT [FK_Secciones_To_Grados] FOREIGN KEY ([grado_id]) REFERENCES [dbo].[Grados] ([id]) ON DELETE CASCADE;
+ALTER TABLE [dbo].[Cursos] ADD CONSTRAINT [FK_Cursos_To_Grados] FOREIGN KEY ([grado_id]) REFERENCES [dbo].[Grados] ([id]);
+GO
+
+-- Relaciones de Estudiantes
+ALTER TABLE [dbo].[Estudiantes] ADD CONSTRAINT [FK_Estudiantes_To_Grados] FOREIGN KEY ([grado_id]) REFERENCES [dbo].[Grados] ([id]);
+ALTER TABLE [dbo].[Estudiantes] ADD CONSTRAINT [FK_Estudiantes_To_Secciones] FOREIGN KEY ([seccion_id]) REFERENCES [dbo].[Secciones] ([id]);
+ALTER TABLE [dbo].[Estudiante_Apoderado] ADD CONSTRAINT [FK_Rel_To_Estudiantes] FOREIGN KEY ([estudiante_id]) REFERENCES [dbo].[Estudiantes] ([id]);
+ALTER TABLE [dbo].[Estudiante_Apoderado] ADD CONSTRAINT [FK_Rel_To_Padres] FOREIGN KEY ([padre_id]) REFERENCES [dbo].[Padres] ([id]);
+GO
+
+-- Relaciones de Tablas Transaccionales
+ALTER TABLE [dbo].[Asignaciones] ADD CONSTRAINT [FK_Asignaciones_To_Docentes] FOREIGN KEY ([docente_id]) REFERENCES [dbo].[Docentes] ([id]);
+ALTER TABLE [dbo].[Asignaciones] ADD CONSTRAINT [FK_Asignaciones_To_Periodos] FOREIGN KEY ([periodo_id]) REFERENCES [dbo].[PeriodosAcademicos] ([id]);
+ALTER TABLE [dbo].[Asistencias] ADD CONSTRAINT [FK_Asistencias_To_Cursos] FOREIGN KEY ([curso_id]) REFERENCES [dbo].[Cursos] ([id]);
+ALTER TABLE [dbo].[Asistencias] ADD CONSTRAINT [FK_Asistencias_To_Estudiantes] FOREIGN KEY ([estudiante_id]) REFERENCES [dbo].[Estudiantes] ([id]) ON DELETE CASCADE;
+ALTER TABLE [dbo].[Asistencias] ADD CONSTRAINT [FK_Asistencias_To_Periodos] FOREIGN KEY ([periodo_id]) REFERENCES [dbo].[PeriodosAcademicos] ([id]);
+ALTER TABLE [dbo].[Calificaciones] ADD CONSTRAINT [FK_Calificaciones_To_Cursos] FOREIGN KEY ([curso_id]) REFERENCES [dbo].[Cursos] ([id]);
+ALTER TABLE [dbo].[Calificaciones] ADD CONSTRAINT [FK_Calificaciones_To_Estudiantes] FOREIGN KEY ([estudiante_id]) REFERENCES [dbo].[Estudiantes] ([id]) ON DELETE CASCADE;
+ALTER TABLE [dbo].[Calificaciones] ADD CONSTRAINT [FK_Calificaciones_To_Periodos] FOREIGN KEY ([periodo_id]) REFERENCES [dbo].[PeriodosAcademicos] ([id]);
+ALTER TABLE [dbo].[Comunicados] ADD CONSTRAINT [FK_Comunicados_To_Usuarios] FOREIGN KEY ([autor_id]) REFERENCES [dbo].[Usuarios] ([id]);
+GO
+
+-- Relaciones de Finanzas
+ALTER TABLE [dbo].[ConceptosPago] ADD CONSTRAINT [FK_Conceptos_To_Periodos] FOREIGN KEY ([periodo_id]) REFERENCES [dbo].[PeriodosAcademicos] ([id]);
+ALTER TABLE [dbo].[DeudasEstudiante] ADD CONSTRAINT [FK_Deudas_To_Conceptos] FOREIGN KEY ([concepto_id]) REFERENCES [dbo].[ConceptosPago] ([id]);
+ALTER TABLE [dbo].[DeudasEstudiante] ADD CONSTRAINT [FK_Deudas_To_Estudiantes] FOREIGN KEY ([estudiante_id]) REFERENCES [dbo].[Estudiantes] ([id]) ON DELETE CASCADE;
+ALTER TABLE [dbo].[PagosRegistrados] ADD CONSTRAINT [FK_Pagos_To_Deudas] FOREIGN KEY ([deuda_id]) REFERENCES [dbo].[DeudasEstudiante] ([id]);
+ALTER TABLE [dbo].[PagosRegistrados] ADD CONSTRAINT [FK_Pagos_To_Usuarios] FOREIGN KEY ([registrado_por_id]) REFERENCES [dbo].[Usuarios] ([id]);
+GO
+
+-- Relaciones de Admisión y Evaluación
+ALTER TABLE [dbo].[Preinscripciones] ADD CONSTRAINT [FK_Preinscripciones_To_Grados] FOREIGN KEY ([grado_id_solicitado]) REFERENCES [dbo].[Grados] ([id]);
+ALTER TABLE [dbo].[RespuestasEvaluacionDocente] ADD CONSTRAINT [FK_Respuestas_To_Cursos] FOREIGN KEY ([curso_id]) REFERENCES [dbo].[Cursos] ([id]);
+ALTER TABLE [dbo].[RespuestasEvaluacionDocente] ADD CONSTRAINT [FK_Respuestas_To_Docentes] FOREIGN KEY ([docente_id]) REFERENCES [dbo].[Docentes] ([id]);
+ALTER TABLE [dbo].[RespuestasEvaluacionDocente] ADD CONSTRAINT [FK_Respuestas_To_Estudiantes] FOREIGN KEY ([estudiante_id]) REFERENCES [dbo].[Estudiantes] ([id]);
+ALTER TABLE [dbo].[RespuestasEvaluacionDocente] ADD CONSTRAINT [FK_Respuestas_To_Periodos] FOREIGN KEY ([periodo_id]) REFERENCES [dbo].[PeriodosAcademicos] ([id]);
+ALTER TABLE [dbo].[RespuestasEvaluacionDocente] ADD CONSTRAINT [FK_Respuestas_To_Preguntas] FOREIGN KEY ([pregunta_id]) REFERENCES [dbo].[PreguntasEvaluacionDocente] ([id]) ON DELETE CASCADE;
+GO
+
+PRINT 'Base de datos "sistema_gestion_escolar_v3" y sus tablas creadas exitosamente.';
+GO

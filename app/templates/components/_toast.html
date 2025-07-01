@@ -1,0 +1,22 @@
+{# 
+  RUTA: app/templates/components/_toast.html
+  Componente reutilizable para mostrar notificaciones (mensajes flash).
+  Se incluye en base.html y se renderiza dinámicamente.
+#}
+<div class="toast align-items-center text-white bg-{{ category }} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+        <div class="toast-body">
+            {% if category == 'success' %}
+                <i class="bi bi-check-circle-fill me-2"></i>
+            {% elif category == 'danger' %}
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% elif category == 'warning' %}
+                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% elif category == 'info' %}
+                <i class="bi bi-info-circle-fill me-2"></i>
+            {% endif %}
+            {{ message }}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+    </div>
+</div>

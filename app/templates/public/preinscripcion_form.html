@@ -1,0 +1,58 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Formulario de Preinscripción{% endblock %}
+
+{% block body_class %}login-body{% endblock %}
+
+{% block body_content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <img src="{{ url_for('static', filename='img/logoAlfredNobel.png') }}" alt="Logo Alfred Nobel" style="width: 80px; margin-bottom: 10px;">
+                    <h3 class="fw-light my-2">Formulario de Preinscripción</h3>
+                    <!-- CORRECCIÓN: Se usa la variable 'current_year' pasada desde la ruta -->
+                    <p class="mb-0">Colegio Particular Alfred Nobel - Proceso de Admisión {{ current_year }}</p>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form action="{{ url_for('main.preinscripcion_form') }}" method="POST" novalidate>
+                        {{ form.csrf_token }}
+                        
+                        <h5 class="card-title mb-3">Datos del Aspirante</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">{{ form.nombres_aspirante.label(class="form-label") }}{{ form.nombres_aspirante(class="form-control") }}</div>
+                            <div class="col-md-6">{{ form.apellidos_aspirante.label(class="form-label") }}{{ form.apellidos_aspirante(class="form-control") }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">{{ form.dni_aspirante.label(class="form-label") }}{{ form.dni_aspirante(class="form-control") }}</div>
+                            <div class="col-md-6">{{ form.fecha_nacimiento_aspirante.label(class="form-label") }}{{ form.fecha_nacimiento_aspirante(class="form-control") }}</div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.grado_id_solicitado.label(class="form-label") }}
+                            {{ form.grado_id_solicitado(class="form-select") }}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="card-title mb-3">Datos del Padre, Madre o Apoderado</h5>
+                        <div class="mb-3">{{ form.nombre_apoderado.label(class="form-label") }}{{ form.nombre_apoderado(class="form-control") }}</div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">{{ form.dni_apoderado.label(class="form-label") }}{{ form.dni_apoderado(class="form-control") }}</div>
+                            <div class="col-md-6">{{ form.telefono_apoderado.label(class="form-label") }}{{ form.telefono_apoderado(class="form-control") }}</div>
+                        </div>
+                        <div class="mb-3">{{ form.correo_apoderado.label(class="form-label") }}{{ form.correo_apoderado(class="form-control") }}</div>
+
+                        <div class="d-grid mt-4">
+                            {{ form.submit(class="btn btn-success btn-lg") }}
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('auth.login') }}">Volver al Inicio de Sesión</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

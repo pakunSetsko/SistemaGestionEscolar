@@ -1,0 +1,80 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Gestionar Comunicados{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Gestión de Comunicados</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#comunicadoModal">
+        <i class="bi bi-plus-circle-fill me-2"></i>Nuevo Comunicado
+    </button>
+</div>
+<p>Desde aquí puede publicar y administrar los anuncios para la comunidad educativa.</p>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <i class="bi bi-megaphone-fill me-2"></i>Comunicados Publicados
+    </div>
+    <div class="card-body">
+        {% if comunicados %}
+            <div class="list-group">
+                {% for c in comunicados %}
+                <div class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold">{{ c.titulo }} <span class="badge bg-secondary fw-normal">{{ c.destinatario|replace('_', ' ')|title }}</span></div>
+                        <p class="mb-1">{{ c.contenido | truncate(150) }}</p>
+                        <small class="text-muted">Publicado por {{ c.autor_username }} el {{ c.fecha_publicacion.strftime('%d/%m/%Y %H:%M') }}</small>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary edit-btn" 
+                                data-bs-toggle="modal" data-bs-target="#comunicadoModal" 
+                                data-id="{{ c.id }}" title="Editar">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <form action="{{ url_for('director.eliminar_comunicado', comunicado_id=c.id) }}" method="POST" onsubmit="return confirm('¿Está seguro de que desea eliminar este comunicado?');" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-muted">Aún no se han publicado comunicados.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para CREAR/EDITAR Comunicado -->
+<div class="modal fade" id="comunicadoModal" tabindex="-1" aria-labelledby="comunicadoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="comunicadoModalLabel">Nuevo Comunicado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="comunicadoForm" action="{{ url_for('director.gestionar_comunicados') }}" method="POST" novalidate>
+                {{ form.csrf_token }}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ form.titulo.label(class="form-label") }}
+                        {{ form.titulo(class="form-control", id="form_titulo") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.contenido.label(class="form-label") }}
+                        {{ form.contenido(class="form-control", rows="5", id="form_contenido") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.destinatario.label(class="form-label") }}
+                        {{ form.destinatario(class="form-select", id="form_destinatario") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

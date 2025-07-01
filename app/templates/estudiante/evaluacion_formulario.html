@@ -1,0 +1,48 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Formulario de Evaluación{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Formulario de Evaluación</h1>
+    <a href="{{ url_for('estudiante.evaluacion_docente_lista') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Cancelar y Volver</a>
+</div>
+<p>Por favor, responde honestamente a las siguientes preguntas para el docente.</p>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <form action="{{ url_for('estudiante.realizar_evaluacion', docente_id=docente_id, curso_id=curso_id) }}" method="POST" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% for pregunta in preguntas %}
+            <div class="mb-4 p-3 border rounded bg-light">
+                <p class="fw-bold">{{ loop.index }}. {{ pregunta.texto_pregunta }}</p>
+                
+                {% if pregunta.tipo_pregunta == 'escala_1_5' %}
+                <div class="text-center">
+                    <div class="btn-group" role="group">
+                        {% for i in range(1, 6) %}
+                        <input type="radio" class="btn-check" name="pregunta_{{ pregunta.id }}" id="p{{pregunta.id}}-{{i}}" value="{{i}}" required autocomplete="off">
+                        <label class="btn btn-outline-primary" for="p{{pregunta.id}}-{{i}}">{{i}}</label>
+                        {% endfor %}
+                    </div>
+                    <small class="d-block text-muted mt-2">(1=Muy en desacuerdo, 5=Muy de acuerdo)</small>
+                </div>
+                {% elif pregunta.tipo_pregunta == 'texto_abierto' %}
+                <div>
+                    <textarea class="form-control" name="pregunta_{{ pregunta.id }}" rows="3" placeholder="Escribe tu comentario aquí..."></textarea>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="alert alert-warning">No hay preguntas de evaluación configuradas por la dirección.</div>
+            {% endfor %}
+
+            {% if preguntas %}
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-success btn-lg">Enviar Evaluación</button>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

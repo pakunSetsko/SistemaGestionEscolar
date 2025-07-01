@@ -1,0 +1,174 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Gestión de Cursos{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Gestión de Cursos</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearCursoModal">
+        <i class="bi bi-plus-circle-fill me-2"></i>Crear Nuevo Curso
+    </button>
+</div>
+<p>Desde aquí puede administrar todos los cursos ofrecidos por la institución.</p>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nombre del Curso</th>
+                        <th>Área</th>
+                        <th>Grado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for curso in cursos %}
+                    <tr>
+                        <td>{{ curso.nombre }}</td>
+                        <td>{{ curso.area }}</td>
+                        <td>{{ curso.grado_nombre }}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-primary edit-btn" 
+                                    data-bs-toggle="modal" data-bs-target="#editarCursoModal"
+                                    data-id="{{ curso.id }}"
+                                    title="Editar">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                             <button class="btn btn-sm btn-outline-danger delete-btn"
+                                    data-bs-toggle="modal" data-bs-target="#eliminarCursoModal"
+                                    data-id="{{ curso.id }}"
+                                    data-name="{{ curso.nombre }}"
+                                    title="Eliminar">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center">No hay cursos registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Crear Curso -->
+<div class="modal fade" id="crearCursoModal" tabindex="-1" aria-labelledby="crearCursoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearCursoModalLabel">Crear Nuevo Curso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form action="{{ url_for('admin.crear_curso') }}" method="POST" novalidate>
+                {{ form.csrf_token }}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ form.nombre.label(class="form-label") }}
+                        {{ form.nombre(class="form-control", required=True) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.area.label(class="form-label") }}
+                        {{ form.area(class="form-control", required=True) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.grado_id.label(class="form-label") }}
+                        {{ form.grado_id(class="form-select", required=True) }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Curso -->
+<div class="modal fade" id="editarCursoModal" tabindex="-1" aria-labelledby="editarCursoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarCursoModalLabel">Editar Curso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="editCursoForm" method="POST" novalidate>
+                {{ form.csrf_token }}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ form.nombre.label(class="form-label") }}
+                        {{ form.nombre(id="edit_nombre", class="form-control", required=True) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.area.label(class="form-label") }}
+                        {{ form.area(id="edit_area", class="form-control", required=True) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.grado_id.label(class="form-label") }}
+                        {{ form.grado_id(id="edit_grado_id", class="form-select", required=True) }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    {{ form.submit(class="btn btn-primary", value="Guardar Cambios") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Eliminar Curso -->
+{% include 'components/_modal_delete.html' with context %}
+{% set modal_id = 'eliminarCursoModal' %}
+{% set title = 'Confirmar Eliminación' %}
+{% set body_text = '¿Está seguro de que desea eliminar el curso' %}
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Lógica para el modal de EDICIÓN
+    const editModal = document.getElementById('editarCursoModal');
+    if(editModal) {
+        editModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const cursoId = button.getAttribute('data-id');
+            const form = document.getElementById('editCursoForm');
+            form.action = `/admin/curso/${cursoId}/editar`;
+
+            fetch(`/admin/api/curso/${cursoId}`)
+                .then(response => response.ok ? response.json() : Promise.reject('Network response was not ok.'))
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
+                    form.querySelector('#edit_nombre').value = data.nombre;
+                    form.querySelector('#edit_area').value = data.area;
+                    form.querySelector('#edit_grado_id').value = data.grado_id;
+                })
+                .catch(error => console.error('Error fetching curso data:', error));
+        });
+    }
+
+    // Lógica para el modal de ELIMINACIÓN
+    const deleteModal = document.getElementById('eliminarCursoModal');
+    if(deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const entityId = button.getAttribute('data-id');
+            const entityName = button.getAttribute('data-name');
+            
+            deleteModal.querySelector('.delete-name').textContent = `"${entityName}"`;
+            const form = deleteModal.querySelector('.delete-form');
+            form.action = `{{ url_for('admin.eliminar_curso', curso_id=0) }}`.replace('0', entityId);
+        });
+    }
+});
+</script>
+{% endblock %}

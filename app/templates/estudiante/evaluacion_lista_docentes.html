@@ -1,0 +1,35 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Evaluación Docente{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Evaluación Docente</h1>
+</div>
+<p>Tu opinión es importante para mejorar la calidad educativa. Por favor, evalúa a tus docentes.</p>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        Mis Docentes a Evaluar
+    </div>
+    <div class="card-body">
+        <ul class="list-group list-group-flush">
+            {% for docente in docentes %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold">{{ docente.apellidos }}, {{ docente.nombres }}</div>
+                    <small class="text-muted">Curso: {{ docente.curso_nombre }}</small>
+                </div>
+                {% if docente.evaluado %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Evaluado</span>
+                {% else %}
+                    <a href="{{ url_for('estudiante.realizar_evaluacion', docente_id=docente.docente_id, curso_id=docente.curso_id) }}" class="btn btn-primary">Evaluar</a>
+                {% endif %}
+            </li>
+            {% else %}
+            <li class="list-group-item text-center">No tienes docentes asignados para evaluar en este momento.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

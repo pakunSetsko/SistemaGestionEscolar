@@ -1,0 +1,137 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Mi Panel de Estudiante{% endblock %}
+
+{% block dashboard_content %}
+<!-- Encabezado de Bienvenida -->
+<div class="mb-4">
+    <h1 class="h2">Panel de Estudiante</h1>
+    {% if data %}
+    <p class="text-muted">¡Bienvenido de vuelta, <strong>{{ data.estudiante.nombres }}</strong>! Aquí tienes un resumen de tu progreso.</p>
+    {% endif %}
+</div>
+
+{% if data %}
+<!-- Tarjetas de Resumen -->
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-primary h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-person-check-fill me-2"></i>Mis Datos</h5>
+                <p class="card-text mb-0"><strong>Grado:</strong> {{ data.estudiante.grado_nombre }}</p>
+                <p class="card-text"><strong>Sección:</strong> {{ data.estudiante.seccion_nombre }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+             <div class="card-body text-center">
+                <h5 class="card-title text-success"><i class="bi bi-graph-up me-2"></i>Promedio General</h5>
+                <h2 class="display-5 fw-bold">{{ "%.2f"|format(data.promedio_general) }}</h2>
+                <small class="text-muted">En el periodo actual</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-info"><i class="bi bi-calendar2-check-fill me-2"></i>Asistencia</h5>
+                <canvas id="asistenciaChart" style="max-height: 120px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contenido Principal: Calificaciones y Comunicados -->
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header"><i class="bi bi-journals me-2"></i>Resumen de Calificaciones</div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th class="text-center">Bim. 1</th>
+                            <th class="text-center">Bim. 2</th>
+                            <th class="text-center">Bim. 3</th>
+                            <th class="text-center">Bim. 4</th>
+                            <th class="text-center fw-bold">Promedio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       {% for curso, notas in data.calificaciones_por_curso.items() %}
+                        <tr>
+                            <td><strong>{{ curso }}</strong></td>
+                            {% set total = {'sum': 0.0, 'count': 0} %}
+                            {% for i in range(1, 5) %}
+                                {% set nota = notas.get(i) %}
+                                <td class="text-center">
+                                    {% if nota and nota.valor is not none %}
+                                        <span class="badge fs-6 rounded-pill bg-{{ 'primary' if nota.valor >= 11 else 'danger' }}">{{ "%.0f"|format(nota.valor) }}</span>
+                                        {% do total.update({'sum': total.sum + (nota.valor|float), 'count': total.count + 1}) %}
+                                    {% else %} - {% endif %}
+                                </td>
+                            {% endfor %}
+                            <td class="text-center fw-bold">
+                                {% if total.count > 0 %}
+                                    {% set promedio = total.sum / total.count %}
+                                    <span class="badge fs-6 rounded-pill bg-{{ 'success' if promedio >= 11 else 'danger' }}">{{ "%.1f"|format(promedio) }}</span>
+                                {% else %}-{% endif %}
+                            </td>
+                        </tr>
+                       {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header"><i class="bi bi-megaphone-fill me-2"></i>Comunicados</div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                {% if data.comunicados %}
+                <div class="list-group list-group-flush">
+                    {% for c in data.comunicados %}
+                    <div class="list-group-item px-0">
+                        <h6 class="mb-1">{{ c.titulo }}</h6>
+                        <small class="text-muted">{{ c.fecha_publicacion.strftime('%d/%m/%Y') }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay comunicados.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">No se pudieron cargar tus datos. Por favor, contacta a administración.</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('asistenciaChart');
+    {% if data and data.asistencia_stats.Presente + data.asistencia_stats.Tardanza + data.asistencia_stats.Falta > 0 %}
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Presente', 'Tardanza', 'Falta'],
+                datasets: [{
+                    data: [ {{ data.asistencia_stats.Presente }}, {{ data.asistencia_stats.Tardanza }}, {{ data.asistencia_stats.Falta }} ],
+                    backgroundColor: [ 'rgba(25, 135, 84, 0.8)', 'rgba(255, 193, 7, 0.8)', 'rgba(220, 53, 69, 0.8)' ],
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

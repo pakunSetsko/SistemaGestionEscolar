@@ -1,0 +1,51 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Reporte Académico General{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Reporte Académico General</h1>
+    <div>
+        <button onclick="window.print();" class="btn btn-secondary"><i class="bi bi-printer-fill me-2"></i>Imprimir</button>
+    </div>
+</div>
+<p>Consolidado del rendimiento de todos los estudiantes para el periodo académico actual.</p>
+
+<div class="card shadow-sm">
+    <div class="card-body table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Estudiante</th>
+                    <th>DNI</th>
+                    <th>Grado y Sección</th>
+                    <th class="text-center">Promedio General Ponderado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if reporte %}
+                    {% for item in reporte %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ item.nombre_completo }}</td>
+                        <td>{{ item.dni }}</td>
+                        <td>{{ item.grado_seccion }}</td>
+                        <td class="text-center">
+                            {% set promedio = item.promedio_general %}
+                            <span class="badge fs-6 rounded-pill bg-{{ 'success' if promedio >= 11 else 'danger' }}">
+                                {{ "%.2f"|format(promedio) }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">No hay datos disponibles para generar el reporte.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

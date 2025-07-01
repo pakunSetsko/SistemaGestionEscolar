@@ -1,0 +1,137 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Dashboard del Director{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Dashboard Institucional</h1>
+    <span class="badge bg-light text-dark shadow-sm p-2 fs-6">
+        <i class="bi bi-calendar-check-fill me-1"></i>
+        Periodo Activo: <strong>{{ periodo_activo.nombre if periodo_activo else 'N/A' }}</strong>
+    </span>
+</div>
+
+<!-- Tarjetas de Estadísticas Generales -->
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card text-white" style="background-color: var(--color-primario-nobel);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Total de Estudiantes</h5>
+                        <h2 class="display-4">{{ data.estadisticas_generales.estudiantes }}</h2>
+                    </div>
+                    <i class="bi bi-people-fill" style="font-size: 3.5rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card text-white" style="background-color: var(--color-acento-nobel);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Total de Docentes</h5>
+                        <h2 class="display-4">{{ data.estadisticas_generales.docentes }}</h2>
+                    </div>
+                    <i class="bi bi-person-video3" style="font-size: 3.5rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card text-dark bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Total de Cursos</h5>
+                        <h2 class="display-4">{{ data.estadisticas_generales.cursos }}</h2>
+                    </div>
+                    <i class="bi bi-journal-album" style="font-size: 3.5rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos Interactivos -->
+<div class="row mt-3">
+    <div class="col-lg-7 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header"><i class="bi bi-bar-chart-line-fill me-2"></i>Distribución de Estudiantes por Grado</div>
+            <div class="card-body">
+                <canvas id="estudiantesPorGradoChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header"><i class="bi bi-pie-chart-fill me-2"></i>Resumen Financiero del Periodo</div>
+            <div class="card-body">
+                <canvas id="resumenFinancieroChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Gráfico de Barras: Estudiantes por Grado
+    const ctxGrado = document.getElementById('estudiantesPorGradoChart');
+    if (ctxGrado) {
+        new Chart(ctxGrado, {
+            type: 'bar',
+            data: {
+                labels: {{ data.grafico_estudiantes_por_grado.labels | tojson }},
+                datasets: [{
+                    label: 'N° de Estudiantes',
+                    data: {{ data.grafico_estudiantes_por_grado.data | tojson }},
+                    backgroundColor: 'rgba(13, 71, 161, 0.6)',
+                    borderColor: 'rgba(13, 71, 161, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'Número de Estudiantes Matriculados en Cada Grado' }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Torta: Resumen Financiero
+    const ctxFinanzas = document.getElementById('resumenFinancieroChart');
+    if (ctxFinanzas) {
+        new Chart(ctxFinanzas, {
+            type: 'doughnut',
+            data: {
+                labels: {{ data.grafico_financiero.labels | tojson }},
+                datasets: [{
+                    label: 'Monto (S/.)',
+                    data: {{ data.grafico_financiero.data | tojson }},
+                    backgroundColor: ['rgba(25, 135, 84, 0.7)', 'rgba(255, 193, 7, 0.7)'],
+                    borderColor: ['rgba(25, 135, 84, 1)', 'rgba(255, 193, 7, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Estado de Pagos vs. Deudas del Periodo' }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

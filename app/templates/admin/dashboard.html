@@ -1,0 +1,160 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Dashboard del Administrador{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard del Administrador</h1>
+</div>
+
+<div class="row">
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total de Estudiantes</div>
+                        {# CORRECCIÓN: Usamos la variable correcta del diccionario 'stats' #}
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_estudiantes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people-fill fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Total de Docentes</div>
+                        {# CORRECCIÓN: Usamos la variable correcta del diccionario 'stats' #}
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_docentes }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-person-video3 fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Total de Cursos Registrados</div>
+                        {# CORRECCIÓN: Usamos la variable correcta del diccionario 'stats' #}
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_cursos }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-journal-album fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Distribución de Estudiantes por Grado</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    {# El gráfico se renderizará aquí con JavaScript #}
+                    <canvas id="graficoEstudiantesPorGrado"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Últimas Preinscripciones</h6>
+                <a href="{{ url_for('director.gestionar_preinscripciones') }}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+            </div>
+            <div class="list-group list-group-flush">
+                {# CORRECCIÓN: Iteramos sobre la variable correcta del diccionario 'stats' #}
+                {% for pre in stats.ultimas_preinscripciones %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="bi bi-person-plus-fill text-primary me-2"></i>
+                        <strong>{{ pre.nombres_aspirante }} {{ pre.apellidos_aspirante }}</strong>
+                    </span>
+                    <small class="text-muted">{{ pre.fecha_preinscripcion.strftime('%d/%m/%Y') }}</small>
+                </div>
+                {% else %}
+                <div class="list-group-item">No hay preinscripciones recientes.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Gráfico de Barras: Estudiantes por Grado ---
+    const ctx = document.getElementById('graficoEstudiantesPorGrado').getContext('2d');
+    
+    // Obtenemos los datos desde el objeto 'stats' que pasa Flask
+    const labels = {{ stats.grafico_estudiantes_por_grado.labels|tojson }};
+    const data = {{ stats.grafico_estudiantes_por_grado.data|tojson }};
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'N° de Estudiantes',
+                data: data,
+                backgroundColor: 'rgba(78, 115, 223, 0.8)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 1,
+                hoverBackgroundColor: 'rgba(78, 115, 223, 1)'
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1 // Asegura que el eje Y vaya de 1 en 1 si los números son pequeños
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false // Ocultamos la leyenda ya que es un solo dataset
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Estudiantes: ${context.raw}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

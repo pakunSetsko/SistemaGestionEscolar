@@ -1,0 +1,83 @@
+<!-- 
+  RUTA: app/templates/admin/_modal_create_edit_estudiante.html
+  Componente que contiene los modales para crear y editar estudiantes.
+-->
+
+<!-- Modal para CREAR Estudiante -->
+<div class="modal fade" id="crearEstudianteModal" tabindex="-1" aria-labelledby="crearEstudianteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearEstudianteModalLabel">Crear Nuevo Estudiante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form action="{{ url_for('admin.crear_usuario') }}" method="POST" novalidate>
+                {{ form_crear.csrf_token }}
+                <input type="hidden" name="rol" value="estudiante">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">{{ form_crear.username.label(class="form-label") }}{{ form_crear.username(class="form-control") }}</div>
+                        <div class="col-md-6">{{ form_crear.password.label(class="form-label") }}{{ form_crear.password(class="form-control") }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">{{ form_crear.nombres.label(class="form-label") }}{{ form_crear.nombres(class="form-control") }}</div>
+                        <div class="col-md-6">{{ form_crear.apellidos.label(class="form-label") }}{{ form_crear.apellidos(class="form-control") }}</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-4">{{ form_crear.dni.label(class="form-label") }}{{ form_crear.dni(class="form-control") }}</div>
+                        <div class="col-md-4">{{ form_crear.correo.label(class="form-label") }}{{ form_crear.correo(class="form-control") }}</div>
+                        <div class="col-md-4">{{ form_crear.fecha_nacimiento.label(class="form-label") }}{{ form_crear.fecha_nacimiento(class="form-control") }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">{{ form_crear.grado_id.label(class="form-label") }}{{ form_crear.grado_id(class="form-select") }}</div>
+                        <div class="col-md-6">{{ form_crear.seccion_id.label(class="form-label") }}{{ form_crear.seccion_id(class="form-select") }}</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    {{ form_crear.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para EDITAR Estudiante -->
+<div class="modal fade" id="editarEstudianteModal" tabindex="-1" aria-labelledby="editarEstudianteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarEstudianteModalLabel">Editar Estudiante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <!-- El formulario de edición se pasa desde la ruta como 'form_edit' -->
+            <form id="editForm" method="POST" novalidate>
+                {{ form_crear.csrf_token }} {# Usamos el mismo formulario, por lo que el token es el mismo #}
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">{{ form_crear.username.label() }}{{ form_crear.username(class="form-control", id="edit_username") }}</div>
+                        <div class="col-md-6 align-self-center"><div class="form-check form-switch mt-3">{{ form_crear.activo(class="form-check-input", id="edit_activo") }}{{ form_crear.activo.label(class="form-check-label") }}</div></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">{{ form_crear.nombres.label() }}{{ form_crear.nombres(class="form-control", id="edit_nombres") }}</div>
+                        <div class="col-md-6">{{ form_crear.apellidos.label() }}{{ form_crear.apellidos(class="form-control", id="edit_apellidos") }}</div>
+                    </div>
+                     <div class="row mb-3">
+                         <div class="col-md-4">{{ form_crear.dni.label() }}{{ form_crear.dni(class="form-control", id="edit_dni") }}</div>
+                         <div class="col-md-4">{{ form_crear.correo.label() }}{{ form_crear.correo(class="form-control", id="edit_correo") }}</div>
+                         <div class="col-md-4">{{ form_crear.fecha_nacimiento.label() }}{{ form_crear.fecha_nacimiento(class="form-control", id="edit_fecha_nacimiento") }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">{{ form_crear.grado_id.label() }}{{ form_crear.grado_id(class="form-select", id="edit_grado_id") }}</div>
+                        <div class="col-md-6">{{ form_crear.seccion_id.label() }}{{ form_crear.seccion_id(class="form-select", id="edit_seccion_id") }}</div>
+                    </div>
+                    <small class="text-muted">La contraseña no se puede cambiar desde aquí. Use el script de reseteo si es necesario.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    {{ form_crear.submit(class="btn btn-primary", value="Guardar Cambios") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

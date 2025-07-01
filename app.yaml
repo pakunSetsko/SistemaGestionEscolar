@@ -1,0 +1,32 @@
+# RUTA: app.yaml
+# Archivo de configuración para desplegar la aplicación en Google App Engine.
+
+# Selecciona el entorno de ejecución de Python.
+runtime: python39
+
+# Define cómo se inicia la aplicación.
+# gunicorn es un servidor WSGI de producción recomendado.
+# main:app le dice a gunicorn que busque el objeto 'app' en el archivo 'main.py'.
+entrypoint: gunicorn --workers 2 --threads 4 --timeout 60 main:app
+
+# Configuración de escalado automático.
+# App Engine creará y eliminará instancias según el tráfico.
+instance_class: F2 # Clase de instancia (equilibrio entre costo y rendimiento)
+automatic_scaling:
+  min_instances: 0
+  max_instances: 2
+  target_cpu_utilization: 0.75
+
+# Variables de entorno para el entorno de producción.
+# ¡IMPORTANTE! NUNCA subas valores secretos (contraseñas, claves) aquí.
+# Estos valores se deben configurar de forma segura en la consola de Google Cloud
+# a través de la configuración de App Engine o usando Secret Manager.
+env_variables:
+  FLASK_ENV: "production"
+  # --- Variables que DEBES configurar en la consola de GCP ---
+  # SECRET_KEY: "tu-clave-secreta-obtenida-de-secret-manager"
+  # DB_SERVER: "ip-privada-o-nombre-de-conexion-de-cloud-sql"
+  # DB_DATABASE: "sistema_gestion_escolar_v3"
+  # DB_USERNAME: "usuario-de-tu-base-de-datos"
+  # DB_PASSWORD: "la-contraseña-de-bd-obtenida-de-secret-manager"
+  # DB_DRIVER: "{ODBC Driver 17 for SQL Server}"

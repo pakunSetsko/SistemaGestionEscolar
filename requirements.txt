@@ -1,0 +1,23 @@
+# RUTA: requirements.txt
+# Lista de dependencias de Python para el proyecto.
+
+# Framework web principal
+Flask
+
+# Para la gestión de sesiones de usuario (login, logout)
+Flask-Login
+
+# Para la protección contra CSRF y la gestión de formularios
+Flask-WTF
+
+# Driver para conectar con SQL Server
+pyodbc
+
+# Dependencia de Flask para utilidades web
+Werkzeug
+
+# Servidor WSGI estándar para producción
+gunicorn
+
+# Para cargar variables de entorno desde un archivo .env en desarrollo
+python-dotenv

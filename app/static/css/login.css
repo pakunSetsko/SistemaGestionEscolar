@@ -1,0 +1,29 @@
+/* /app/static/css/login.css */
+
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+.login-bg {
+    /* Ruta a tu imagen de fondo */
+    background-image: url("../img/fondo_institucion.jpg");
+
+    /* Posiciona y escala la imagen de fondo */
+    height: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+/* Estilos para hacer el formulario más legible sobre el fondo */
+.login-container .card {
+    /* Fondo semitransparente para el formulario */
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.login-container .card-title {
+    font-weight: bold;
+}

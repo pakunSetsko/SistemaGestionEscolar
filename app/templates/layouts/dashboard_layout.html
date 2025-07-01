@@ -1,0 +1,81 @@
+{% extends 'layouts/base.html' %}
+
+{% block body_content %}
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="border-right" id="sidebar-wrapper">
+        <div class="sidebar-heading text-center py-4">
+            <a href="{{ url_for('main.index') }}" class="text-white text-decoration-none">
+                <img src="{{ url_for('static', filename='img/logoAlfredNobel.png') }}" alt="Logo Alfred Nobel" style="width: 80px; margin-bottom: 10px;">
+                <h5>Colegio Alfred Nobel</h5>
+            </a>
+        </div>
+        <!-- El estilo de texto se aplica al contenedor padre para no repetir clases -->
+        <div class="list-group list-group-flush text-white">
+            
+            <!-- Menú dinámico para Administrador -->
+            {% if current_user.rol == 'admin' %}
+                <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i>Dashboard</a>
+                <a href="{{ url_for('admin.gestionar_docentes') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.gestionar_docentes' %}active{% endif %}"><i class="bi bi-person-video3"></i>Docentes</a>
+                <a href="{{ url_for('admin.gestionar_estudiantes') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.gestionar_estudiantes' %}active{% endif %}"><i class="bi bi-people-fill"></i>Estudiantes</a>
+                <a href="{{ url_for('admin.gestionar_vinculos') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.gestionar_vinculos' %}active{% endif %}"><i class="bi bi-link-45deg"></i>Vínculos Familiares</a>
+                <a href="{{ url_for('admin.gestionar_cursos') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.gestionar_cursos' %}active{% endif %}"><i class="bi bi-journal-album"></i>Cursos</a>
+                <a href="{{ url_for('admin.configuracion') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.configuracion' %}active{% endif %}"><i class="bi bi-gear-fill"></i>Configuración</a>
+            
+            <!-- Menú dinámico para Director -->
+            {% elif current_user.rol == 'director' %}
+                <a href="{{ url_for('director.dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'director.dashboard' %}active{% endif %}"><i class="bi bi-bar-chart-line-fill"></i>Dashboard</a>
+                <a href="{{ url_for('director.gestionar_preinscripciones') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'director.gestionar_preinscripciones' %}active{% endif %}"><i class="bi bi-person-plus-fill"></i>Preinscripciones</a>
+                <a href="{{ url_for('director.reporte_academico') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'director.reporte_academico' %}active{% endif %}"><i class="bi bi-file-earmark-pdf-fill"></i>Reportes Académicos</a>
+                <a href="{{ url_for('director.gestion_financiera') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'director.gestion_financiera' %}active{% endif %}"><i class="bi bi-wallet-fill"></i>Gestión Financiera</a>
+                <a href="{{ url_for('director.gestionar_comunicados') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'director.gestionar_comunicados' %}active{% endif %}"><i class="bi bi-megaphone-fill"></i>Comunicados</a>
+                <a href="{{ url_for('director.gestionar_preguntas_evaluacion') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'director.gestionar_preguntas_evaluacion' %}active{% endif %}"><i class="bi bi-patch-question-fill"></i>Evaluación Docente</a>
+                <a href="{{ url_for('director.resultados_evaluacion') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'director.resultados_evaluacion' %}active{% endif %}"><i class="bi bi-graph-up"></i>Resultados Evaluación</a>
+
+            <!-- Menú dinámico para Docente -->
+            {% elif current_user.rol == 'docente' %}
+                 <a href="{{ url_for('docente.dashboard') }}" class="list-group-item list-group-item-action {% if 'docente.' in request.endpoint %}active{% endif %}"><i class="bi bi-card-checklist"></i>Mis Cursos</a>
+
+            <!-- Menú dinámico para Estudiante -->
+            {% elif current_user.rol == 'estudiante' %}
+                 <a href="{{ url_for('estudiante.dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'estudiante.dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2-fill"></i>Mi Panel</a>
+                 <a href="{{ url_for('estudiante.ver_boleta') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'estudiante.ver_boleta' %}active{% endif %}"><i class="bi bi-file-earmark-text-fill"></i>Boleta de Notas</a>
+                 <a href="{{ url_for('estudiante.estado_de_cuenta') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'estudiante.estado_de_cuenta' %}active{% endif %}"><i class="bi bi-cash-coin"></i>Estado de Cuenta</a>
+                 <a href="{{ url_for('estudiante.evaluacion_docente_lista') }}" class="list-group-item list-group-item-action {% if 'evaluacion' in request.endpoint %}active{% endif %}"><i class="bi bi-pencil-square"></i>Evaluar Docentes</a>
+
+            <!-- Menú dinámico para Padre de Familia -->
+            {% elif current_user.rol == 'padre_familia' %}
+                 <a href="{{ url_for('padre.dashboard') }}" class="list-group-item list-group-item-action {% if 'padre.' in request.endpoint %}active{% endif %}"><i class="bi bi-people-fill"></i>Mis Hijos</a>
+            {% endif %}
+        </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content Wrapper -->
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <div class="container-fluid">
+                <button class="btn btn-primary" id="menu-toggle"><i class="bi bi-list"></i></button>
+
+                <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i>{{ current_user.username }} ({{ current_user.rol|replace('_', ' ')|title }})
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="{{ url_for('profile.view') }}">Mi Perfil</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Cerrar Sesión</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="container-fluid p-4">
+            {% block dashboard_content %}{% endblock %}
+        </main>
+    </div>
+    <!-- /#page-content-wrapper -->
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+/* RUTA: app/static/css/style.css */
+
+/* --- Variables de Colores Institucionales --- */
+:root {
+    --color-primario-nobel: #0D47A1; /* Azul oscuro y profesional */
+    --color-secundario-nobel: #1976D2; /* Azul más claro para acentos */
+    --color-acento-nobel: #D81B60;   /* Fucsia/Magenta institucional */
+    --color-fondo-sidebar: #001f3f; /* Azul marino oscuro para la barra lateral */
+    --color-fondo-claro: #f8f9fa;    /* Un gris muy claro para el fondo principal */
+    --color-texto-claro: #ffffff;
+    --color-texto-oscuro: #343a40;
+    --color-borde-suave: #dee2e6;
+}
+
+/* --- Estilos Generales y para el Login --- */
+body {
+    overflow-x: hidden;
+    background-color: var(--color-fondo-claro);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--color-texto-oscuro);
+}
+
+.login-body {
+    /* Se establece la imagen de fondo */
+    background-image: url('../img/fondo_login.png');
+
+    /* Opcional: Propiedades para asegurar que la imagen cubra toda la pantalla */
+    background-size: cover; /* Hace que la imagen se estire para cubrir el fondo */
+    background-position: center; /* Centra la imagen */
+    background-repeat: no-repeat; /* Evita que la imagen se repita */
+    background-attachment: fixed; /* Fija la imagen para que no se mueva al hacer scroll */
+
+    /* Estilos que ya tenías para centrar el contenido */
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    background-color: rgba(255, 255, 255, 1);
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* --- Estructura del Dashboard (Sidebar + Contenido) --- */
+#wrapper {
+    display: flex;
+    transition: all 0.3s ease;
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    width: 250px;
+    margin-left: -250px;
+    background-color: var(--color-fondo-sidebar);
+    transition: margin .25s ease-out;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+}
+
+.sidebar-heading {
+    padding: 1.5rem 1.25rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--color-texto-claro);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.list-group-item {
+    background-color: transparent !important;
+    border: none;
+    border-radius: 0;
+    padding: 1rem 1.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s ease-in-out;
+}
+
+.list-group-item i {
+    font-size: 1.1rem;
+    margin-right: 0.75rem;
+}
+
+.list-group-item-action:hover, .list-group-item-action:focus, .list-group-item.active {
+    color: var(--color-texto-claro);
+    background-color: var(--color-acento-nobel) !important;
+    padding-left: 2rem;
+    border-left: 5px solid var(--color-secundario-nobel);
+}
+
+#page-content-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* --- Componentes Reutilizables (Tarjetas, Botones, etc.) --- */
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.card-header {
+    background-color: #fff;
+    color: var(--color-primario-nobel);
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-borde-suave);
+    padding: 1rem 1.25rem;
+}
+
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--color-primario-nobel);
+    border-color: var(--color-primario-nobel);
+}
+.btn-primary:hover {
+    background-color: #0B3A82;
+    border-color: #0B3A82;
+    transform: translateY(-2px);
+}
+
+/* --- Media Queries para Responsividad --- */
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+    }
+    #page-content-wrapper {
+        min-width: 0;
+        width: 100%;
+    }
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: -250px;
+    }
+}

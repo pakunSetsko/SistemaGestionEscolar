@@ -1,0 +1,103 @@
+{% extends 'layouts/dashboard_layout.html' %}
+
+{% block title %}Gestión Financiera{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2">Gestión Financiera</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">Crear Concepto de Pago</div>
+            <div class="card-body">
+                <form action="{{ url_for('director.crear_concepto_pago') }}" method="POST" novalidate>
+                    {{ form_concepto.csrf_token }}
+                    <div class="mb-3">{{ form_concepto.nombre.label() }}{{ form_concepto.nombre(class="form-control", placeholder="Ej: Pensión Junio 2025") }}</div>
+                    <div class="mb-3">{{ form_concepto.monto_sugerido.label() }}{{ form_concepto.monto_sugerido(class="form-control") }}</div>
+                    <div class="d-grid">{{ form_concepto.submit(class="btn btn-primary") }}</div>
+                </form>
+            </div>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-header">Asignar Deuda Masivamente</div>
+            <div class="card-body">
+                <form action="{{ url_for('director.asignar_deuda_masiva') }}" method="POST" novalidate>
+                    {{ form_deuda.csrf_token }}
+                    <div class="mb-3">{{ form_deuda.grado_id.label() }}{{ form_deuda.grado_id(class="form-select") }}</div>
+                    <div class="mb-3">{{ form_deuda.concepto_id.label() }}{{ form_deuda.concepto_id(class="form-select") }}</div>
+                    <div class="mb-3">{{ form_deuda.monto.label() }}{{ form_deuda.monto(class="form-control") }}</div>
+                    <div class="mb-3">{{ form_deuda.fecha_vencimiento.label() }}{{ form_deuda.fecha_vencimiento(class="form-control") }}</div>
+                    <div class="d-grid">{{ form_deuda.submit(class="btn btn-success") }}</div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header">Registro de Deudas y Pagos</div>
+            <div class="card-body table-responsive">
+                <table class="table table-sm table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>Vencimiento</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deuda in deudas %}
+                        <tr>
+                            <td>{{ deuda.apellidos }}, {{ deuda.nombres }}</td>
+                            <td>{{ deuda.concepto_nombre }}</td>
+                            <td>S/. {{ "%.2f"|format(deuda.monto) }}</td>
+                            <td>{{ deuda.fecha_vencimiento.strftime('%d/%m/%Y') }}</td>
+                            <td><span class="badge fs-6 bg-{% if deuda.estado == 'pendiente' %}warning text-dark{% elif deuda.estado == 'pagado' %}success{% else %}danger{% endif %}">{{ deuda.estado|capitalize }}</span></td>
+                            <td class="text-center">
+                                {% if deuda.estado == 'pendiente' %}
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#pagoModal{{deuda.id}}">Registrar Pago</button>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <!-- Modal de Pago para cada deuda -->
+                        <div class="modal fade" id="pagoModal{{deuda.id}}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Registrar Pago para {{ deuda.apellidos }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="{{ url_for('director.registrar_pago') }}" method="POST" novalidate>
+                                        {{ form_pago.csrf_token }}
+                                        {{ form_pago.deuda_id(value=deuda.id) }}
+                                        <div class="modal-body">
+                                            <p><strong>Deuda:</strong> {{ deuda.concepto_nombre }} por S/. {{ "%.2f"|format(deuda.monto) }}</p>
+                                            <div class="mb-3">{{ form_pago.monto_pagado.label() }}{{ form_pago.monto_pagado(class="form-control", value=deuda.monto) }}</div>
+                                            <div class="mb-3">{{ form_pago.metodo_pago.label() }}{{ form_pago.metodo_pago(class="form-select") }}</div>
+                                            <div class="mb-3">{{ form_pago.observaciones.label() }}{{ form_pago.observaciones(class="form-control", rows="2") }}</div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            {{ form_pago.submit(class="btn btn-success") }}
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <tr><td colspan="6" class="text-center">No hay deudas registradas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
